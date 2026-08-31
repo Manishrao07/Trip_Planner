@@ -47,7 +47,7 @@ Open <http://localhost:3000>.
 | `npm start` / `npm run dev` | Dev server on :3000 |
 | `npm run build` | Production build |
 | `npm run serve` | Serve the production build |
-| `npm test` | Failure-handling + motion test suite (58 tests) |
+| `npm test` | Failure-handling, motion, and globe test suite (85 tests) |
 | `npm run typecheck` | `tsc --noEmit` |
 
 ### The API key never reaches the browser
@@ -85,6 +85,11 @@ client never has to trust its own optimistic partial parse.
 | `lib/normalize.ts` | Salvage layer. Turns a validated blob into renderable state, dropping only what's broken. |
 | `lib/errors.ts` | The error taxonomy — 13 kinds, each with a cause, a consequence, and a recovery path. |
 | `lib/motion.ts` | Scroll-choreography math (`smoothstep`, `segmentInOut`). |
+| `lib/globe.ts` | Globe geometry — lat/lng projection, great-circle arcs, centroids. No Three.js import, so it unit-tests in Node. |
+| `lib/geo/land.json` | 64 KB of pre-decoded Natural Earth coastline (public domain). |
+| `components/globe/Globe.tsx` | The lazy boundary. Must never import `three`. |
+| `components/globe/GlobeCanvas.tsx` | R3F entry point; everything Three.js lives at or below it. |
+| `components/Tilt3D.tsx` | Pointer-driven CSS 3D tilt with `data-depth` parallax layers. |
 | `hooks/useTripPlanner.ts` | The state machine: requests, streaming, and every itinerary edit. |
 | `hooks/useCinematicScroll.ts` | The hero's rAF loop. Writes CSS variables; never re-renders React. |
 | `app/api/itinerary/route.ts` | The only place the API key is used. |
@@ -157,7 +162,7 @@ silently succeeding.
 npm test
 ```
 
-58 tests, no framework — Node's built-in runner with native type stripping. The
+85 tests, no framework — Node's built-in runner with native type stripping. The
 adversarial cases are real inputs, including an exhaustive check that **every
 prefix** of a realistic response produces either valid JSON or nothing:
 
@@ -194,6 +199,26 @@ cinematic scroll page supplied as reference. Three deliberate departures:
   than keyed to absolute pixel offsets that silently re-time themselves on any
   viewport that isn't the author's.
 
+### The globe
+
+A WebGL globe (Three.js via React Three Fiber) renders the itinerary rather than
+decorating it. The schema asks Gemini for a decimal `lat`/`lng` on every stop and
+on the destination; the camera eases to those coordinates, a pin drops for each
+located stop, and great-circle arcs connect them in visit order. Coordinates out
+of range are dropped rather than clamped — a clamped pin is confidently in the
+wrong place — and the panel hides itself entirely if nothing was geocoded, rather
+than spinning an empty planet next to a real trip.
+
+The scenery is procedural: coastlines are Natural Earth vectors drawn as line
+geometry, the atmosphere is a fresnel shader on a back-faced sphere, and the
+ocean is a Fibonacci dot field. No texture assets, no licensing questions.
+
+**It stays out of the initial bundle.** Three.js is ~600 kB, on a page whose job
+is to accept one sentence of text. Everything touching R3F sits at or below
+`GlobeCanvas.tsx`, which is only reachable through `dynamic(..., { ssr: false })`,
+and it mounts on idle so it never competes with the composer becoming
+interactive. First Load JS is 187 kB — 4 kB more than before the globe existed.
+
 Accessibility is not bolted on: 4.5:1 contrast in both themes including muted
 text, drag operations paired with keyboard/button equivalents (WCAG 2.2), the
 cost chart backed by a screen-reader table, colour never the sole carrier of
@@ -225,6 +250,12 @@ scrubs, it just stops gliding and following the cursor.
 - **`npm audit` reports 2 advisories** in the `postcss` version bundled inside
   Next 15's build tooling. Both are build-time CSS sourcemap issues with no
   runtime exposure; clearing them requires a Next 16 major bump.
+- **Globe coordinates are the model's.** Gemini is good at well-known landmarks
+  and shakier on small venues; a wrong pin is possible. Geocoding the stop names
+  against a real gazetteer would fix it, at the cost of an API dependency.
+- **The globe is decorative to assistive tech.** It's `aria-hidden`, with the
+  itinerary itself as the accessible representation of the same data. It also
+  skips rendering entirely without WebGL or on devices reporting ≤2 cores.
 - **Not load-tested.** Single user, local dev. The route holds a streaming
   connection for up to 70s, which needs thought before real deployment.
 
@@ -281,4 +312,5 @@ failure-handling layer and its tests, 2h on the design system and cinematic hero
 - [x] Save and reload sessions
 - [x] Polish: animation, dark mode, keyboard navigation, print stylesheet
 - [x] Different block kinds (six stop types) rendered distinctly, plus a cost chart
+- [x] 3D: a WebGL globe driven by model-returned coordinates, plus CSS 3D card tilt
 - [ ] Diff highlighting after refinement
