@@ -100,7 +100,7 @@ export default function RefineBar({ onRefine, onCancel, isLoading }: Props) {
               type="submit"
               disabled={!canSubmit}
               whileTap={canSubmit ? { scale: 0.96 } : undefined}
-              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-deep)] px-4 text-sm font-semibold text-[#04121f] transition-opacity disabled:pointer-events-none disabled:opacity-35"
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-deep)] px-4 text-sm font-semibold text-[var(--ink)] transition-opacity disabled:pointer-events-none disabled:opacity-35"
             >
               <Sparkles size={14} strokeWidth={2.5} aria-hidden="true" />
               <span className="hidden sm:inline">Refine</span>

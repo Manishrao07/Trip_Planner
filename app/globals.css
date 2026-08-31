@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   Midnight Aurora — design tokens
+   Night Express — design tokens
 
    Dark is the default and the designed-for mode; light is a first-class
    counterpart, not an inversion. Every foreground/background pair below was
@@ -12,47 +12,52 @@
 :root {
   color-scheme: dark;
 
-  --bg: #05070d;
-  --bg-raised: #080b13;
-  --surface: rgb(255 255 255 / 0.035);
-  --surface-hover: rgb(255 255 255 / 0.06);
-  --surface-solid: #0d1119;
-  --border: rgb(255 255 255 / 0.09);
-  --border-strong: rgb(255 255 255 / 0.17);
+  /* Night Express — a rail-travel palette.
+     Warm neutrals over a green-black night, with brass as the single accent.
+     Deliberately not blue: cyan-on-black is the default "AI product" look and
+     belongs to no subject in particular. Brass and cream belong to this one. */
 
-  --fg: #eef2f8;
-  --fg-muted: #9aa6ba; /* 8.1:1 on --bg */
-  --fg-faint: #6d788b; /* 4.6:1 on --bg */
+  --bg: #080d0c;
+  --bg-raised: #0d1513;
+  --surface: rgb(244 235 221 / 0.045);
+  --surface-hover: rgb(244 235 221 / 0.08);
+  --surface-solid: #121a18;
+  --border: rgb(244 235 221 / 0.1);
+  --border-strong: rgb(244 235 221 / 0.2);
 
-  --primary: #38bdf8;
-  --primary-deep: #818cf8;
-  --accent: #fb923c;
-  --success: #34d399;
-  --warn: #fbbf24;
-  --danger: #f87171;
-  --ring: #38bdf8;
+  --fg: #f4ebdd; /* warm ivory, never pure white */
+  --fg-muted: #a8a092; /* 7.4:1 on --bg */
+  --fg-faint: #857d6f; /* 4.9:1 on --bg */
+
+  --primary: #d4af37; /* brass */
+  --primary-deep: #a67c1f;
+  --accent: #c2643f; /* terracotta */
+  --success: #6b9e78;
+  --warn: #d9a441;
+  --danger: #c4553d;
+  --ring: #d4af37;
 
   /* Stop kinds — colour is always paired with a distinct icon, never alone. */
-  --kind-sight: #38bdf8;
-  --kind-food: #fbbf24;
-  --kind-transport: #a78bfa;
-  --kind-stay: #34d399;
-  --kind-experience: #f472b6;
-  --kind-free: #94a3b8;
+  --kind-sight: #d4af37;
+  --kind-food: #c2643f;
+  --kind-transport: #8fa9c4;
+  --kind-stay: #6b9e78;
+  --kind-experience: #c98fa8;
+  --kind-free: #9a9384;
 
-  --aurora-1: rgb(56 189 248 / 0.28);
-  --aurora-2: rgb(129 140 248 / 0.26);
-  --aurora-3: rgb(52 211 153 / 0.16);
-  --grain-opacity: 0.035;
+  /* Aurora becomes a low night wash rather than a light show. */
+  --aurora-1: rgb(62 124 106 / 0.14);
+  --aurora-2: rgb(212 175 55 / 0.1);
+  --aurora-3: rgb(35 70 62 / 0.18);
+  --grain-opacity: 0.045;
 
-  /* Paper — the cream card surface that sits against the dark stage. Identical
-     in both themes on purpose: it's a material, not a theme colour. */
-  --paper: #fdf1e1;
-  --ink: #111411;
-  --paper-shadow: 0 18px 52px rgb(2 47 64 / 0.18);
+  /* Paper — the cream card surface. A material, not a theme colour. */
+  --paper: #f4ebdd;
+  --ink: #14201c;
+  --paper-shadow: 0 18px 52px rgb(0 0 0 / 0.45);
 
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.55);
-  --shadow-float: 0 24px 60px -24px rgb(0 0 0 / 0.75);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-float: 0 24px 60px -24px rgb(0 0 0 / 0.8);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -63,44 +68,47 @@
 .light {
   color-scheme: light;
 
-  --bg: #f6f8fc;
-  --bg-raised: #ffffff;
-  --surface: rgb(255 255 255 / 0.72);
-  --surface-hover: rgb(15 23 42 / 0.045);
-  --surface-solid: #ffffff;
-  --border: rgb(15 23 42 / 0.1);
-  --border-strong: rgb(15 23 42 / 0.2);
+  /* Daylight counterpart: the same warm neutrals, inverted in value rather
+     than hue, so the brand reads identically in both modes. */
 
-  --fg: #0a1120;
-  --fg-muted: #4a5568; /* 7.4:1 on --bg */
-  --fg-faint: #64748b; /* 4.8:1 on --bg */
+  --bg: #f7f1e6;
+  --bg-raised: #fffaf2;
+  --surface: rgb(255 252 246 / 0.78);
+  --surface-hover: rgb(20 32 28 / 0.05);
+  --surface-solid: #fffaf2;
+  --border: rgb(20 32 28 / 0.12);
+  --border-strong: rgb(20 32 28 / 0.22);
 
-  --primary: #0284c7;
-  --primary-deep: #4f46e5;
-  --accent: #ea580c;
-  --success: #059669;
-  --warn: #b45309;
-  --danger: #dc2626;
-  --ring: #0284c7;
+  --fg: #14201c;
+  --fg-muted: #4c5852; /* 7.6:1 on --bg */
+  --fg-faint: #6d7670; /* 4.7:1 on --bg */
 
-  --kind-sight: #0284c7;
-  --kind-food: #b45309;
-  --kind-transport: #6d28d9;
-  --kind-stay: #059669;
-  --kind-experience: #be185d;
-  --kind-free: #475569;
+  --primary: #8a6d15; /* brass, darkened to clear 4.5:1 on cream */
+  --primary-deep: #6b5310;
+  --accent: #a8462a;
+  --success: #3d7a4d;
+  --warn: #8a6218;
+  --danger: #a33923;
+  --ring: #8a6d15;
 
-  --aurora-1: rgb(56 189 248 / 0.22);
-  --aurora-2: rgb(129 140 248 / 0.2);
-  --aurora-3: rgb(52 211 153 / 0.14);
-  --grain-opacity: 0.02;
+  --kind-sight: #8a6d15;
+  --kind-food: #a8462a;
+  --kind-transport: #3f5f80;
+  --kind-stay: #3d7a4d;
+  --kind-experience: #9c4266;
+  --kind-free: #5b625b;
 
-  --paper: #fffdf9;
-  --ink: #111411;
-  --paper-shadow: 0 18px 44px rgb(15 23 42 / 0.14);
+  --aurora-1: rgb(62 124 106 / 0.16);
+  --aurora-2: rgb(212 175 55 / 0.14);
+  --aurora-3: rgb(35 70 62 / 0.1);
+  --grain-opacity: 0.025;
 
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 10px 28px -14px rgb(15 23 42 / 0.2);
-  --shadow-float: 0 26px 60px -26px rgb(15 23 42 / 0.28);
+  --paper: #fffaf2;
+  --ink: #14201c;
+  --paper-shadow: 0 18px 44px rgb(20 32 28 / 0.16);
+
+  --shadow-card: 0 1px 2px rgb(20 32 28 / 0.06), 0 10px 28px -14px rgb(20 32 28 / 0.22);
+  --shadow-float: 0 26px 60px -26px rgb(20 32 28 / 0.3);
 }
 
 /* Bridge the runtime custom properties into Tailwind's utility namespace so
@@ -217,7 +225,7 @@ body {
 }
 
 .glass-strong {
-  background: color-mix(in oklab, var(--bg-raised) 78%, transparent);
+  background: color-mix(in oklab, var(--bg-raised) 90%, transparent);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   border: 1px solid var(--border);
@@ -476,6 +484,16 @@ body {
   }
 }
 
+/* The journey screen: the globe is the whole stage, centred behind the copy. */
+.globe-layer--journey {
+  left: 50%;
+  top: 50%;
+  width: min(112vh, 118vw);
+  height: min(112vh, 118vw);
+  transform: translate3d(-50%, -50%, 0);
+  opacity: 0.95;
+}
+
 /* The workspace globe: a contained panel, not a backdrop. */
 .globe-layer--panel {
   position: absolute;
@@ -500,8 +518,8 @@ body {
 .ridge--far {
   left: 50%;
   width: 128%;
-  height: 32vh;
-  opacity: 0.55;
+  height: 30vh;
+  opacity: 0.4;
   transform-origin: 50% 100%;
   transform: translate3d(
       calc(-50% + var(--mx) * 14px),
@@ -514,8 +532,8 @@ body {
 .ridge--mid {
   left: 50%;
   width: 122%;
-  height: 24vh;
-  opacity: 0.75;
+  height: 22vh;
+  opacity: 0.55;
   transform-origin: 50% 100%;
   transform: translate3d(
       calc(-50% + var(--mx) * 26px),
@@ -528,9 +546,9 @@ body {
 /* The canyon walls that frame the content and part as the hero exits. */
 .ridge--near-left,
 .ridge--near-right {
-  width: 38%;
-  height: 88vh;
-  opacity: 0.9;
+  width: 34%;
+  height: 84vh;
+  opacity: 0.82;
 }
 
 .ridge--near-left {
@@ -687,6 +705,62 @@ body {
 }
 
 /* ============================================================================
+   The rail
+
+   A track running under the composer. The sleepers scroll, so the input reads
+   as a carriage in motion rather than a box sitting still — and the same
+   variable that drives them speeds up when a journey starts.
+   ========================================================================= */
+
+.rail {
+  position: relative;
+  height: 26px;
+  width: 100%;
+  pointer-events: none;
+  /* Fade both ends so the track leaves the screen rather than stopping dead. */
+  mask-image: linear-gradient(90deg, transparent, black 14%, black 86%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 14%, black 86%, transparent);
+}
+
+/* The two running rails. */
+.rail::before,
+.rail::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: color-mix(in oklab, var(--primary) 45%, transparent);
+}
+
+.rail::before {
+  top: 9px;
+}
+
+.rail::after {
+  top: 18px;
+}
+
+.rail-sleepers {
+  position: absolute;
+  inset: 7px 0 auto 0;
+  height: 13px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--fg) 16%, transparent) 0 2px,
+    transparent 2px 20px
+  );
+  animation: rail-run var(--rail-duration, 1.9s) linear infinite;
+}
+
+@keyframes rail-run {
+  to {
+    /* One full sleeper pitch, so the loop is seamless. */
+    background-position-x: -20px;
+  }
+}
+
+/* ============================================================================
    CSS 3D tilt
    ========================================================================= */
 
@@ -753,6 +827,10 @@ body {
   .rail-card,
   .round-nav {
     transition: none !important;
+  }
+
+  .rail-sleepers {
+    animation: none !important;
   }
 
   *,

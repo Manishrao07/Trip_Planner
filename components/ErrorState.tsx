@@ -77,7 +77,7 @@ export default function ErrorState({ error, onRetry, onEdit, isRetrying }: Props
                 type="button"
                 onClick={onRetry}
                 disabled={isRetrying}
-                className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-deep)] px-4 text-sm font-semibold text-[#04121f] transition-opacity disabled:opacity-50"
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-deep)] px-4 text-sm font-semibold text-[var(--ink)] transition-opacity disabled:opacity-50"
               >
                 <RotateCw
                   size={14}

@@ -31,7 +31,7 @@ export function RidgeFar({ className }: { className?: string }) {
       aria-hidden="true"
       focusable="false"
     >
-      <path d={FAR_RIDGE} fill="color-mix(in oklab, var(--primary) 34%, var(--bg))" />
+      <path d={FAR_RIDGE} fill="color-mix(in oklab, #3e7c6a 26%, var(--bg))" />
     </svg>
   );
 }
@@ -45,7 +45,7 @@ export function RidgeMid({ className }: { className?: string }) {
       aria-hidden="true"
       focusable="false"
     >
-      <path d={MID_RIDGE} fill="color-mix(in oklab, var(--primary-deep) 40%, var(--ink))" />
+      <path d={MID_RIDGE} fill="color-mix(in oklab, #23463e 55%, var(--bg))" />
     </svg>
   );
 }
@@ -61,7 +61,7 @@ export function RidgeWall({ side, className }: WallProps) {
     >
       <path
         d={WALL}
-        fill="color-mix(in oklab, var(--ink) 86%, var(--primary-deep))"
+        fill="color-mix(in oklab, var(--ink) 82%, #23463e)"
         // The right wall is the left one mirrored about the viewBox centre.
         transform={side === "right" ? "translate(720,0) scale(-1,1)" : undefined}
       />

@@ -107,7 +107,7 @@ export default function Composer({ onSubmit, onCancel, isLoading, autoFocus }: P
                 onClick={submit}
                 disabled={!canSubmit}
                 whileTap={canSubmit ? { scale: 0.96 } : undefined}
-                className="group inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-deep)] px-5 text-sm font-semibold text-[#04121f] shadow-lg shadow-[color-mix(in_oklab,var(--primary)_28%,transparent)] transition-all duration-200 disabled:pointer-events-none disabled:opacity-35 disabled:shadow-none"
+                className="group inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--primary-deep)] px-5 text-sm font-semibold text-[var(--ink)] shadow-lg shadow-[color-mix(in_oklab,var(--primary)_28%,transparent)] transition-all duration-200 disabled:pointer-events-none disabled:opacity-35 disabled:shadow-none"
               >
                 Plan it
                 <ArrowUp
