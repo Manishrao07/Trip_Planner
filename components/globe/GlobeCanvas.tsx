@@ -10,6 +10,7 @@ type Props = {
   stops: GeoStop[];
   spin: number;
   pointer: { x: number; y: number };
+  journeying?: boolean;
 };
 
 /**
@@ -21,7 +22,7 @@ type Props = {
  * loaded. Everything that touches R3F lives at or below this file, and this
  * file is only ever reached through a `dynamic()` import in Globe.tsx.
  */
-export default function GlobeCanvas({ focus, stops, spin, pointer }: Props) {
+export default function GlobeCanvas({ focus, stops, spin, pointer, journeying }: Props) {
   return (
     <Canvas
       camera={{ position: [0, 0, 3.05], fov: 38 }}
@@ -30,7 +31,7 @@ export default function GlobeCanvas({ focus, stops, spin, pointer }: Props) {
       // `alpha` keeps the page background visible behind the globe.
       style={{ background: "transparent" }}
     >
-      <GlobeScene focus={focus} stops={stops} spin={spin} pointer={pointer} />
+      <GlobeScene focus={focus} stops={stops} spin={spin} pointer={pointer} journeying={journeying} />
     </Canvas>
   );
 }

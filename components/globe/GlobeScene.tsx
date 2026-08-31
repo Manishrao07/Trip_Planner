@@ -26,6 +26,8 @@ type Props = {
   /** Idle spin speed, radians/sec. Zeroed under reduced motion. */
   spin: number;
   pointer: { x: number; y: number };
+  /** True while an itinerary is generating — the train runs the journey fast. */
+  journeying?: boolean;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -60,8 +62,8 @@ function Atmosphere() {
     () =>
       new THREE.ShaderMaterial({
         uniforms: {
-          uColor: { value: new THREE.Color("#38bdf8") },
-          uStrength: { value: 1.15 },
+          uColor: { value: new THREE.Color("#3f7f6d") },
+          uStrength: { value: 0.8 },
         },
         vertexShader: atmosphereVertex,
         fragmentShader: atmosphereFragment,
@@ -98,7 +100,7 @@ function Coastlines() {
 
   return (
     <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#7dd3fc" transparent opacity={0.42} />
+      <lineBasicMaterial color="#e8dcc8" transparent opacity={0.4} />
     </lineSegments>
   );
 }
@@ -115,7 +117,7 @@ function OceanDots() {
 
   return (
     <points geometry={geometry}>
-      <pointsMaterial color="#38bdf8" size={0.005} sizeAttenuation transparent opacity={0.22} />
+      <pointsMaterial color="#8fb5a4" size={0.005} sizeAttenuation transparent opacity={0.2} />
     </points>
   );
 }
@@ -151,7 +153,7 @@ function Graticule() {
 
   return (
     <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#38bdf8" transparent opacity={0.07} />
+      <lineBasicMaterial color="#e8dcc8" transparent opacity={0.06} />
     </lineSegments>
   );
 }
@@ -170,7 +172,7 @@ function StopPins({ stops }: { stops: GeoStop[] }) {
         const [x, y, z] = latLngToVec3(stop.lat, stop.lng, SURFACE + 0.006);
         return (
           <mesh key={stop.id} geometry={geometry} position={[x, y, z]}>
-            <meshBasicMaterial color="#fb923c" toneMapped={false} />
+            <meshBasicMaterial color="#d4af37" toneMapped={false} />
           </mesh>
         );
       })}
@@ -202,8 +204,129 @@ function TripArcs({ stops }: { stops: GeoStop[] }) {
 
   return (
     <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#fbbf24" transparent opacity={0.7} toneMapped={false} />
+      <lineBasicMaterial color="#d4af37" transparent opacity={0.65} toneMapped={false} />
     </lineSegments>
+  );
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* The train                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const ORBIT_RADIUS = 1.2;
+/** Tilt of the orbital plane, so the track reads as a ring in perspective. */
+const ORBIT_TILT = 0.42;
+const CARRIAGES = 5;
+/** Angular gap between carriages — tight enough to couple, loose enough to read. */
+const CARRIAGE_GAP = 0.052;
+
+/**
+ * A point on the orbit at angle `theta`.
+ *
+ * The path is a circle in the XZ plane, tilted about X. Computing it as a pure
+ * function of theta (rather than accumulating a transform) means the carriages
+ * can be placed at fixed angular offsets behind the locomotive and stay
+ * perfectly coupled no matter how the speed changes.
+ */
+function orbitPoint(theta: number, target: THREE.Vector3): THREE.Vector3 {
+  const x = Math.cos(theta) * ORBIT_RADIUS;
+  const z = Math.sin(theta) * ORBIT_RADIUS;
+  // Rotate about X by ORBIT_TILT.
+  const cos = Math.cos(ORBIT_TILT);
+  const sin = Math.sin(ORBIT_TILT);
+  return target.set(x, -z * sin, z * cos);
+}
+
+/** The circular track the train runs on. */
+function OrbitTrack() {
+  const geometry = useMemo(() => {
+    const positions: number[] = [];
+    const point = new THREE.Vector3();
+    const segments = 240;
+
+    for (let i = 0; i < segments; i++) {
+      orbitPoint((i / segments) * Math.PI * 2, point);
+      positions.push(point.x, point.y, point.z);
+      orbitPoint(((i + 1) / segments) * Math.PI * 2, point);
+      positions.push(point.x, point.y, point.z);
+    }
+
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+    return g;
+  }, []);
+
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  return (
+    <lineSegments geometry={geometry}>
+      <lineBasicMaterial color="#d4af37" transparent opacity={0.22} />
+    </lineSegments>
+  );
+}
+
+/**
+ * The train: a locomotive plus carriages riding the orbit.
+ *
+ * Each carriage is positioned at a fixed angular offset behind the one ahead and
+ * oriented by looking at the next point along the path, so the whole rake banks
+ * naturally through the tilt of the orbit. Speed ramps up while an itinerary is
+ * generating — the journey *is* the loading state.
+ */
+function Train({ journeying, moving }: { journeying: boolean; moving: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const thetaRef = useRef(0);
+  const speedRef = useRef(0.18);
+
+  const bodies = useMemo(() => new THREE.BoxGeometry(0.075, 0.032, 0.036), []);
+  const locomotive = useMemo(() => new THREE.BoxGeometry(0.095, 0.042, 0.042), []);
+
+  useEffect(
+    () => () => {
+      bodies.dispose();
+      locomotive.dispose();
+    },
+    [bodies, locomotive],
+  );
+
+  const point = useMemo(() => new THREE.Vector3(), []);
+  const ahead = useMemo(() => new THREE.Vector3(), []);
+
+  useFrame((_, delta) => {
+    const group = groupRef.current;
+    if (!group) return;
+
+    const step = Math.min(delta, 0.05);
+
+    // Ease between cruising and journey speed rather than snapping.
+    const targetSpeed = moving ? (journeying ? 1.5 : 0.18) : 0;
+    speedRef.current += (targetSpeed - speedRef.current) * step * 1.8;
+    thetaRef.current += speedRef.current * step;
+
+    group.children.forEach((carriage, index) => {
+      const theta = thetaRef.current - index * CARRIAGE_GAP;
+      orbitPoint(theta, point);
+      orbitPoint(theta + 0.02, ahead);
+      carriage.position.copy(point);
+      carriage.lookAt(ahead);
+    });
+  });
+
+  return (
+    <group ref={groupRef}>
+      {Array.from({ length: CARRIAGES }, (_, index) => (
+        <mesh key={index} geometry={index === 0 ? locomotive : bodies}>
+          <meshBasicMaterial
+            // The locomotive burns brighter than the carriages behind it.
+            color={index === 0 ? "#ffd970" : "#d4af37"}
+            toneMapped={false}
+            transparent
+            opacity={index === 0 ? 1 : Math.max(0.42, 0.92 - index * 0.14)}
+          />
+        </mesh>
+      ))}
+    </group>
   );
 }
 
@@ -238,7 +361,7 @@ function DevRenderHook() {
   return null;
 }
 
-export default function GlobeScene({ focus, stops, spin, pointer }: Props) {
+export default function GlobeScene({ focus, stops, spin, pointer, journeying = false }: Props) {
   const globeRef = useRef<THREE.Group>(null);
   const targetRef = useRef({ x: 0, y: 0 });
   const spunRef = useRef(0);
@@ -277,11 +400,15 @@ export default function GlobeScene({ focus, stops, spin, pointer }: Props) {
     <>
       <DevRenderHook />
       <Atmosphere />
+      {/* Outside the globe group: the train orbits the planet rather than
+          rotating with its surface. */}
+      <OrbitTrack />
+      <Train journeying={journeying} moving={spin > 0 || journeying} />
       <group ref={globeRef}>
         {/* Opaque core so back-facing coastlines are correctly occluded. */}
         <mesh>
           <sphereGeometry args={[RADIUS, 64, 64]} />
-          <meshBasicMaterial color="#070c17" />
+          <meshBasicMaterial color="#06100e" />
         </mesh>
         <OceanDots />
         <Graticule />

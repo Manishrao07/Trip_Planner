@@ -22,6 +22,8 @@ type Props = {
   focus: { lat: number; lng: number } | null;
   stops: GeoStop[];
   className?: string;
+  /** True while an itinerary is generating — speeds the train into its journey. */
+  journeying?: boolean;
 };
 
 function useIdleMount(): boolean {
@@ -71,7 +73,7 @@ function useCanRenderGlobe(): boolean {
   return can;
 }
 
-export default function Globe({ focus, stops, className }: Props) {
+export default function Globe({ focus, stops, className, journeying }: Props) {
   const ready = useIdleMount();
   const canRender = useCanRenderGlobe();
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -121,6 +123,7 @@ export default function Globe({ focus, stops, className }: Props) {
           stops={stops}
           spin={reduceMotion ? 0 : 0.05}
           pointer={reduceMotion ? { x: 0, y: 0 } : pointer}
+          journeying={journeying && !reduceMotion}
         />
       )}
     </div>
