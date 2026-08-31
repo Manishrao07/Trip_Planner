@@ -1,0 +1,689 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   Midnight Aurora — design tokens
+
+   Dark is the default and the designed-for mode; light is a first-class
+   counterpart, not an inversion. Every foreground/background pair below was
+   picked to clear 4.5:1 in BOTH modes (muted text included — "elegant grey on
+   grey" is the most common way a premium-looking UI fails accessibility).
+   ========================================================================= */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #05070d;
+  --bg-raised: #080b13;
+  --surface: rgb(255 255 255 / 0.035);
+  --surface-hover: rgb(255 255 255 / 0.06);
+  --surface-solid: #0d1119;
+  --border: rgb(255 255 255 / 0.09);
+  --border-strong: rgb(255 255 255 / 0.17);
+
+  --fg: #eef2f8;
+  --fg-muted: #9aa6ba; /* 8.1:1 on --bg */
+  --fg-faint: #6d788b; /* 4.6:1 on --bg */
+
+  --primary: #38bdf8;
+  --primary-deep: #818cf8;
+  --accent: #fb923c;
+  --success: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --ring: #38bdf8;
+
+  /* Stop kinds — colour is always paired with a distinct icon, never alone. */
+  --kind-sight: #38bdf8;
+  --kind-food: #fbbf24;
+  --kind-transport: #a78bfa;
+  --kind-stay: #34d399;
+  --kind-experience: #f472b6;
+  --kind-free: #94a3b8;
+
+  --aurora-1: rgb(56 189 248 / 0.28);
+  --aurora-2: rgb(129 140 248 / 0.26);
+  --aurora-3: rgb(52 211 153 / 0.16);
+  --grain-opacity: 0.035;
+
+  /* Paper — the cream card surface that sits against the dark stage. Identical
+     in both themes on purpose: it's a material, not a theme colour. */
+  --paper: #fdf1e1;
+  --ink: #111411;
+  --paper-shadow: 0 18px 52px rgb(2 47 64 / 0.18);
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.55);
+  --shadow-float: 0 24px 60px -24px rgb(0 0 0 / 0.75);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+}
+
+.light {
+  color-scheme: light;
+
+  --bg: #f6f8fc;
+  --bg-raised: #ffffff;
+  --surface: rgb(255 255 255 / 0.72);
+  --surface-hover: rgb(15 23 42 / 0.045);
+  --surface-solid: #ffffff;
+  --border: rgb(15 23 42 / 0.1);
+  --border-strong: rgb(15 23 42 / 0.2);
+
+  --fg: #0a1120;
+  --fg-muted: #4a5568; /* 7.4:1 on --bg */
+  --fg-faint: #64748b; /* 4.8:1 on --bg */
+
+  --primary: #0284c7;
+  --primary-deep: #4f46e5;
+  --accent: #ea580c;
+  --success: #059669;
+  --warn: #b45309;
+  --danger: #dc2626;
+  --ring: #0284c7;
+
+  --kind-sight: #0284c7;
+  --kind-food: #b45309;
+  --kind-transport: #6d28d9;
+  --kind-stay: #059669;
+  --kind-experience: #be185d;
+  --kind-free: #475569;
+
+  --aurora-1: rgb(56 189 248 / 0.22);
+  --aurora-2: rgb(129 140 248 / 0.2);
+  --aurora-3: rgb(52 211 153 / 0.14);
+  --grain-opacity: 0.02;
+
+  --paper: #fffdf9;
+  --ink: #111411;
+  --paper-shadow: 0 18px 44px rgb(15 23 42 / 0.14);
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 10px 28px -14px rgb(15 23 42 / 0.2);
+  --shadow-float: 0 26px 60px -26px rgb(15 23 42 / 0.28);
+}
+
+/* Bridge the runtime custom properties into Tailwind's utility namespace so
+   `bg-surface` / `text-fg-muted` stay theme-reactive. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-solid: var(--surface-solid);
+  --color-border-subtle: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-faint: var(--fg-faint);
+
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), Georgia, serif;
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+/* ========================================================================== */
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* Numeric columns (times, costs) must not jitter as digits change. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--primary) 32%, transparent);
+  color: var(--fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Keyboard users get a ring; pointer users don't get a stray outline. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-faint);
+  background-clip: content-box;
+}
+
+/* ============================================================================
+   Surfaces
+   ========================================================================= */
+
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--border);
+}
+
+.glass-strong {
+  background: color-mix(in oklab, var(--bg-raised) 78%, transparent);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--border);
+}
+
+/* A one-pixel highlight along the top edge — the detail that reads as "premium"
+   on dark glass. Purely decorative, so it's hidden from assistive tech. */
+.sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--fg) 22%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.aurora-text {
+  background: linear-gradient(
+    100deg,
+    var(--primary) 0%,
+    var(--primary-deep) 45%,
+    var(--accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ============================================================================
+   Aurora backdrop
+   ========================================================================= */
+
+.aurora-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.aurora-blob--one {
+  width: 58vw;
+  height: 58vw;
+  min-width: 380px;
+  min-height: 380px;
+  top: -18vw;
+  left: -10vw;
+  background: var(--aurora-1);
+  animation: drift-a 26s ease-in-out infinite alternate;
+}
+
+.aurora-blob--two {
+  width: 46vw;
+  height: 46vw;
+  min-width: 320px;
+  min-height: 320px;
+  top: 6vw;
+  right: -12vw;
+  background: var(--aurora-2);
+  animation: drift-b 32s ease-in-out infinite alternate;
+}
+
+.aurora-blob--three {
+  width: 52vw;
+  height: 52vw;
+  min-width: 340px;
+  min-height: 340px;
+  bottom: -26vw;
+  left: 22vw;
+  background: var(--aurora-3);
+  animation: drift-c 38s ease-in-out infinite alternate;
+}
+
+@keyframes drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6vw, 5vh, 0) scale(1.15);
+  }
+}
+@keyframes drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  to {
+    transform: translate3d(-7vw, 7vh, 0) scale(0.94);
+  }
+}
+@keyframes drift-c {
+  from {
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  to {
+    transform: translate3d(5vw, -6vh, 0) scale(1.14);
+  }
+}
+
+/* Film grain over the gradients — stops large flat blurs from banding. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Fine grid, fading out downward — orientation without decoration. */
+.grid-veil {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--fg) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--fg) 4%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to bottom, black, transparent 62%);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 62%);
+}
+
+/* ============================================================================
+   Loading shimmer
+   ========================================================================= */
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--fg) 8%, transparent),
+    transparent
+  );
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* A slow sweep along the top of the composer while the model is working. */
+.beam {
+  background-size: 200% 100%;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--primary) 25%,
+    var(--primary-deep) 50%,
+    var(--accent) 65%,
+    transparent 100%
+  );
+  animation: beam 1.6s linear infinite;
+}
+
+@keyframes beam {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================================================
+   Cinematic stage
+
+   A sticky viewport that scroll-scrubs a set of parallax layers. Every animated
+   value is a CSS custom property written once per frame from JS, so the browser
+   only ever composites transforms/opacity — no layout, no paint.
+
+   Crucially the stage is only ~180vh tall and the composer lives *inside* it:
+   the cinema plays around the tool rather than in front of it.
+   ========================================================================= */
+
+.stage-rig {
+  position: relative;
+  /* Scroll runway. The hero resolves well before this ends. */
+  height: 175vh;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  min-height: 600px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.depth-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Ridge silhouettes — self-authored SVG, parallaxed at different rates so the
+   scene has real depth rather than a single moving backdrop.
+
+   Each layer gets an explicit height in viewport units and stretches to fill it
+   (preserveAspectRatio="none"). Letting the intrinsic aspect ratio drive height
+   makes a 128%-wide band overshoot the stage by hundreds of pixels and the
+   silhouettes read as hard triangles instead of scenery. */
+.ridge {
+  position: absolute;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.ridge--far {
+  left: 50%;
+  width: 128%;
+  height: 32vh;
+  opacity: 0.55;
+  transform-origin: 50% 100%;
+  transform: translate3d(
+      calc(-50% + var(--mx) * 14px),
+      calc(var(--ridge-far-y) + var(--my) * 5px),
+      0
+    )
+    scale(var(--ridge-far-scale));
+}
+
+.ridge--mid {
+  left: 50%;
+  width: 122%;
+  height: 24vh;
+  opacity: 0.75;
+  transform-origin: 50% 100%;
+  transform: translate3d(
+      calc(-50% + var(--mx) * 26px),
+      calc(var(--ridge-mid-y) + var(--my) * 9px),
+      0
+    )
+    scale(var(--ridge-mid-scale));
+}
+
+/* The canyon walls that frame the content and part as the hero exits. */
+.ridge--near-left,
+.ridge--near-right {
+  width: 38%;
+  height: 88vh;
+  opacity: 0.9;
+}
+
+.ridge--near-left {
+  left: 0;
+  transform-origin: 0 100%;
+  transform: translate3d(
+      calc(var(--split) * -32vw + var(--mx) * 34px),
+      calc(var(--ridge-near-y) + var(--my) * 13px),
+      0
+    )
+    scale(var(--ridge-near-scale));
+}
+
+.ridge--near-right {
+  right: 0;
+  transform-origin: 100% 100%;
+  transform: translate3d(
+      calc(var(--split) * 32vw + var(--mx) * 34px),
+      calc(var(--ridge-near-y) + var(--my) * 13px),
+      0
+    )
+    scale(var(--ridge-near-scale));
+}
+
+/* Blue scrim that rises as the layers separate — the reference's --blur-tint. */
+.stage-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgb(56 189 248 / var(--shade-top)) 0%,
+    rgb(129 140 248 / var(--shade-mid)) 48%,
+    rgb(5 7 13 / var(--shade-bottom)) 100%
+  );
+}
+
+.hero-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  line-height: 0.82;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+/* ============================================================================
+   Paper — cream cards against the dark stage
+   ========================================================================= */
+
+.paper {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--paper-shadow);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 500;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 0.18);
+}
+
+/* Round slider buttons, straight from the reference's .sight-nav. */
+.round-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 94%, transparent);
+  color: var(--ink);
+  box-shadow: 0 18px 36px rgb(0 0 0 / 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.round-nav:hover:not(:disabled) {
+  transform: scale(1.06);
+}
+
+.round-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Horizontal day rail. The easing matches the reference exactly. */
+.rail-track {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(12px, 1.15vw, 20px);
+  transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.rail-track.is-jumping {
+  transition: none;
+}
+
+.rail-card {
+  position: relative;
+  flex: 0 0 clamp(268px, 25vw, 340px);
+  overflow: hidden;
+  border-radius: 22px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.rail-card.is-active {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 60px rgb(2 47 64 / 0.3);
+}
+
+/* On narrow screens the walls must frame the content, not squeeze it. At 38%
+   each they leave barely 70px of clear centre on a 375px phone. */
+@media (max-width: 640px) {
+  .ridge--near-left,
+  .ridge--near-right {
+    width: 24%;
+    height: 58vh;
+    opacity: 0.8;
+  }
+
+  .ridge--far {
+    height: 24vh;
+  }
+
+  .ridge--mid {
+    height: 18vh;
+  }
+}
+
+/* Hide the rail's scrollbar; navigation is via the round buttons and keyboard. */
+.rail-viewport {
+  overflow: hidden;
+  scrollbar-width: none;
+}
+.rail-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================================================
+   Reduced motion — decorative motion off, state changes still legible
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .aurora-blob,
+  .shimmer::after,
+  .beam {
+    animation: none !important;
+  }
+
+  /* The stage still scrubs, just without inertia or pointer drift — the JS
+     forces --mx/--my to 0 and snaps the scroll value. */
+  .rail-track,
+  .rail-card,
+  .round-nav {
+    transition: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Drag affordance for reorderable stops. */
+.grabbable {
+  cursor: grab;
+  touch-action: none;
+}
+.grabbable:active {
+  cursor: grabbing;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .aurora-field,
+  .grain,
+  .grid-veil {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}
