@@ -119,7 +119,22 @@ export default function CinematicHero({ onSubmit, onCancel, isLoading }: Props) 
             transition={{ duration: 0.6, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="mt-9 w-full"
           >
-            <Composer onSubmit={onSubmit} onCancel={onCancel} isLoading={isLoading} autoFocus />
+            {/* The carriage: a gentle sway, and the track running beneath it. */}
+            <motion.div
+              animate={isLoading ? { y: 0 } : { y: [0, -2.5, 0] }}
+              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Composer onSubmit={onSubmit} onCancel={onCancel} isLoading={isLoading} autoFocus />
+            </motion.div>
+
+            <div
+              className="rail mt-1"
+              aria-hidden="true"
+              // The track quickens the moment a journey begins.
+              style={{ "--rail-duration": isLoading ? "0.5s" : "1.9s" } as React.CSSProperties}
+            >
+              <div className="rail-sleepers" />
+            </div>
           </motion.div>
 
           <motion.ul
