@@ -108,6 +108,30 @@ const looseStringArray = z
       .slice(0, 6);
   });
 
+/**
+ * Latitude/longitude, if the model knows it.
+ *
+ * Coordinates are what let the globe be driven by real data rather than being
+ * decoration — a stop without them simply isn't plotted. Out-of-range values are
+ * dropped rather than clamped: a clamped coordinate is a confidently wrong pin
+ * on the map, which is worse than no pin.
+ */
+const looseLatitude = z
+  .union([z.number(), z.string(), z.null()])
+  .optional()
+  .transform((v) => {
+    const n = typeof v === "number" ? v : typeof v === "string" ? Number.parseFloat(v) : NaN;
+    return Number.isFinite(n) && n >= -90 && n <= 90 ? n : undefined;
+  });
+
+const looseLongitude = z
+  .union([z.number(), z.string(), z.null()])
+  .optional()
+  .transform((v) => {
+    const n = typeof v === "number" ? v : typeof v === "string" ? Number.parseFloat(v) : NaN;
+    return Number.isFinite(n) && n >= -180 && n <= 180 ? n : undefined;
+  });
+
 const looseBoolean = z
   .union([z.boolean(), z.string(), z.null()])
   .optional()
@@ -138,6 +162,8 @@ export const StopSchema = z.object({
   ),
   estimatedCost: looseNumber,
   bookingRequired: looseBoolean,
+  lat: looseLatitude,
+  lng: looseLongitude,
   tips: looseStringArray,
 });
 
@@ -172,6 +198,8 @@ export const ItinerarySchema = z.object({
         : "balanced";
     }),
   travelTips: looseStringArray,
+  lat: looseLatitude,
+  lng: looseLongitude,
   days: z.array(z.unknown()).optional(),
 });
 
@@ -207,6 +235,8 @@ export const geminiResponseSchema = {
     summary: { type: "string", description: "Two sentences on the shape of the trip." },
     currency: { type: "string", description: "ISO 4217 code, e.g. USD, EUR, INR, JPY." },
     pace: { type: "string", enum: [...PACE_LEVELS] },
+    lat: { type: "number", description: "Decimal latitude of the destination's centre." },
+    lng: { type: "number", description: "Decimal longitude of the destination's centre." },
     travelTips: {
       type: "array",
       description: "3-5 practical, destination-specific tips.",
@@ -235,6 +265,8 @@ export const geminiResponseSchema = {
                   description: "Per person, in the trip currency. 0 if free.",
                 },
                 bookingRequired: { type: "boolean" },
+                lat: { type: "number", description: "Decimal latitude of this exact place." },
+                lng: { type: "number", description: "Decimal longitude of this exact place." },
                 description: { type: "string", description: "1-2 sentences, concrete and specific." },
                 tips: { type: "array", items: { type: "string" } },
               },
@@ -247,6 +279,8 @@ export const geminiResponseSchema = {
                 "location",
                 "estimatedCost",
                 "bookingRequired",
+                "lat",
+                "lng",
                 "description",
                 "tips",
               ],
@@ -260,5 +294,15 @@ export const geminiResponseSchema = {
     },
   },
   required: ["title", "destination", "days"],
-  propertyOrdering: ["title", "destination", "summary", "currency", "pace", "days", "travelTips"],
+  propertyOrdering: [
+    "title",
+    "destination",
+    "summary",
+    "currency",
+    "pace",
+    "lat",
+    "lng",
+    "days",
+    "travelTips",
+  ],
 } as const;

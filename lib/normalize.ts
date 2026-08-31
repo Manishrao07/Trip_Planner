@@ -170,6 +170,8 @@ export function normalizeItinerary(raw: unknown, meta: NormalizeMeta): Normalize
       currency: parsed.data.currency,
       pace: parsed.data.pace,
       travelTips: parsed.data.travelTips,
+      lat: parsed.data.lat,
+      lng: parsed.data.lng,
       days: renumbered,
     },
   };
@@ -219,6 +221,10 @@ export function normalizePartialItinerary(
     travelTips: Array.isArray(source.travelTips)
       ? source.travelTips.filter((t): t is string => typeof t === "string")
       : [],
+    // Coordinates arrive before the days do (see propertyOrdering), so the globe
+    // can start flying to the destination while the itinerary is still streaming.
+    lat: typeof source.lat === "number" && Math.abs(source.lat) <= 90 ? source.lat : undefined,
+    lng: typeof source.lng === "number" && Math.abs(source.lng) <= 180 ? source.lng : undefined,
     days: days.map((day, index) => ({ ...day, dayNumber: index + 1 })),
   };
 }

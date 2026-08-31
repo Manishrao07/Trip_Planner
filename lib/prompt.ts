@@ -19,6 +19,7 @@ Write itineraries that a real traveller could follow without further research:
 - Costs are per person, in the trip's currency, as a realistic mid-range estimate. Use 0 for genuinely free things.
 - Descriptions are 1-2 sentences and earn their place — say what makes the stop worth the time, or what to order, or when to arrive. Never pad.
 - Flag anything that genuinely needs advance booking.
+- Give every stop its real decimal latitude and longitude, and the destination its centre point. These are plotted on a map, so approximate coordinates are worse than none — omit them if you are not confident.
 
 If the traveller's request is vague, make confident, sensible choices rather than asking for clarification or hedging. If they name a duration, honour it exactly. If they don't, choose a sensible length for the destination and say so in the summary.
 
@@ -53,6 +54,8 @@ export function buildRefinePrompt(current: Itinerary, instruction: string): stri
     summary: current.summary,
     currency: current.currency,
     pace: current.pace,
+    lat: current.lat,
+    lng: current.lng,
     days: current.days.map((day) => ({
       dayNumber: day.dayNumber,
       title: day.title,
@@ -65,6 +68,8 @@ export function buildRefinePrompt(current: Itinerary, instruction: string): stri
         location: stop.location,
         estimatedCost: stop.estimatedCost,
         bookingRequired: stop.bookingRequired,
+        lat: stop.lat,
+        lng: stop.lng,
         description: stop.description,
         tips: stop.tips,
       })),
