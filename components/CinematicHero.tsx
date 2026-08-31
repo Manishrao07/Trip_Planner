@@ -6,6 +6,7 @@ import { useRef } from "react";
 
 import { useCinematicScroll } from "@/hooks/useCinematicScroll";
 import Composer from "./Composer";
+import Globe from "./globe/Globe";
 import { RidgeFar, RidgeMid, RidgeWall } from "./Ridges";
 
 type Props = {
@@ -56,7 +57,11 @@ export default function CinematicHero({ onSubmit, onCancel, isLoading }: Props) 
           } as React.CSSProperties
         }
       >
-        {/* --- Scenery ---------------------------------------------------- */}
+        {/* --- Scenery ------------------------------------------------------
+            Depth order: globe furthest back, then distant ridges, then the
+            canyon walls that frame the content and part on scroll. */}
+        <Globe focus={null} stops={[]} className="globe-layer globe-layer--hero" />
+
         <div className="depth-layer" style={{ zIndex: 1 }} aria-hidden="true">
           <RidgeFar className="ridge ridge--far" />
         </div>

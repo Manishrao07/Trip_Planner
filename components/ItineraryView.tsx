@@ -7,6 +7,7 @@ import { useCallback, useRef } from "react";
 import type { PlannerDispatch } from "@/hooks/useTripPlanner";
 import type { Itinerary } from "@/lib/schema";
 import DayRail from "./DayRail";
+import TripGlobePanel from "./globe/TripGlobePanel";
 import DaySection from "./DaySection";
 import TripStats from "./TripStats";
 
@@ -92,6 +93,8 @@ export default function ItineraryView({
           </div>
         )}
       </motion.header>
+
+      {!isPreview && <TripGlobePanel itinerary={itinerary} />}
 
       <TripStats itinerary={itinerary} />
 
