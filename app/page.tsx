@@ -8,7 +8,8 @@ import CinematicHero from "@/components/CinematicHero";
 import Composer from "@/components/Composer";
 import ErrorState from "@/components/ErrorState";
 import ItineraryView from "@/components/ItineraryView";
-import LoadingSkeleton, { StageIndicator } from "@/components/LoadingSkeleton";
+import JourneyScreen from "@/components/JourneyScreen";
+import { StageIndicator } from "@/components/LoadingSkeleton";
 import { DegradedNotice, UndoToast } from "@/components/Notices";
 import RefineBar from "@/components/RefineBar";
 import SessionsMenu from "@/components/SessionsMenu";
@@ -24,6 +25,12 @@ export default function Home() {
   const isLoading = state.status === "loading";
   /** The cinematic landing only survives while there's genuinely nothing else to show. */
   const showHero = state.status === "idle" && !state.itinerary;
+  /**
+   * The journey takes the full screen only for a first generation. A refinement
+   * keeps the itinerary on screen — yanking it away to show a loading animation
+   * would lose the user's place in the thing they're editing.
+   */
+  const showJourney = isLoading && !state.itinerary;
 
   // Leaving the hero means leaving a 175vh scroll rig — start the workspace at
   // the top rather than wherever the hero happened to be scrolled to.
@@ -106,6 +113,23 @@ export default function Home() {
               <ThemeToggle />
             </div>
           </motion.div>
+        ) : showJourney ? (
+          <motion.div
+            key="journey"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.02, filter: "blur(10px)" }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <main id="main">
+              <JourneyScreen
+                stage={state.stage}
+                preview={state.preview}
+                prompt={state.lastRequest?.prompt ?? ""}
+                onCancel={cancel}
+              />
+            </main>
+          </motion.div>
         ) : (
           <motion.div
             key="workspace"
@@ -172,9 +196,6 @@ export default function Home() {
                   />
                 </div>
               )}
-
-              {/* Skeleton only until the first streamed content lands. */}
-              {isLoading && !visible && <LoadingSkeleton />}
 
               {visible && (
                 <ItineraryView
