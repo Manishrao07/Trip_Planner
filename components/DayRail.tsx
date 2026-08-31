@@ -6,6 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { formatCurrency, pluralize } from "@/lib/format";
 import { kindMeta } from "@/lib/kinds";
 import type { Day } from "@/lib/schema";
+import Tilt3D from "./Tilt3D";
 
 type Props = {
   days: Day[];
@@ -96,6 +97,7 @@ export default function DayRail({ days, currency, onSelect }: Props) {
 
             return (
               <li key={day.id} className="contents">
+                <Tilt3D className="rail-card-tilt">
                 <button
                   type="button"
                   onClick={() => {
@@ -111,12 +113,18 @@ export default function DayRail({ days, currency, onSelect }: Props) {
 
                   <span
                     aria-hidden="true"
+                    data-depth
+                    style={{ "--depth": "34px" } as React.CSSProperties}
                     className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-[var(--ink)]/[0.07] text-[var(--ink)]"
                   >
                     <Icon size={19} strokeWidth={1.75} />
                   </span>
 
-                  <h3 className="mt-9 line-clamp-2 text-[19px] font-semibold leading-tight text-[var(--ink)]">
+                  <h3
+                    data-depth
+                    style={{ "--depth": "22px" } as React.CSSProperties}
+                    className="mt-9 line-clamp-2 text-[19px] font-semibold leading-tight text-[var(--ink)]"
+                  >
                     {day.title}
                   </h3>
 
@@ -131,6 +139,7 @@ export default function DayRail({ days, currency, onSelect }: Props) {
                     {cost > 0 && ` · ${formatCurrency(cost, currency)}`}
                   </p>
                 </button>
+                </Tilt3D>
               </li>
             );
           })}

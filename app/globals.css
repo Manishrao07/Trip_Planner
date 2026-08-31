@@ -435,6 +435,55 @@ body {
   will-change: transform, opacity;
 }
 
+/* The WebGL globe. Sits behind every other stage layer and is purely decorative
+   on the landing screen, so it is inert to the pointer. */
+.globe-layer {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/*
+ * Anchored in viewport *height*, not width.
+ *
+ * Sizing the sphere off `vw` makes the horizon land in a different place on
+ * every aspect ratio — fine on a narrow pane, but on a wide desktop the limb
+ * climbs into the headline. Fixing both height and the bottom offset in `vh`
+ * pins the top of the globe to a constant fraction of the viewport:
+ *
+ *     top = 100vh - |bottom| ... i.e.  bottom = -(top + height - 100)
+ *
+ * With height 150vh and bottom -108vh the limb sits at 58vh — just below the
+ * sub-headline, reading as a horizon behind the composer.
+ */
+.globe-layer--hero {
+  left: 50%;
+  bottom: -108vh;
+  width: 150vh;
+  height: 150vh;
+  transform: translate3d(calc(-50% + var(--mx) * 18px), var(--ridge-mid-y), 0);
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .globe-layer--hero {
+    /* Same 58vh horizon, smaller sphere so the curvature stays legible. */
+    bottom: -88vh;
+    width: 130vh;
+    height: 130vh;
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0.8;
+  }
+}
+
+/* The workspace globe: a contained panel, not a backdrop. */
+.globe-layer--panel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 /* Ridge silhouettes — self-authored SVG, parallaxed at different rates so the
    scene has real depth rather than a single moving backdrop.
 
@@ -589,18 +638,32 @@ body {
   transition: none;
 }
 
+/* The tilt wrapper is the flex item, so the track's sizing lives here; the card
+   simply fills it. Putting flex-basis on the card would size a grandchild of the
+   flex container and collapse every item to its content width. */
+.rail-track > .tilt-scene {
+  flex: 0 0 clamp(268px, 25vw, 340px);
+}
+
 .rail-card {
   position: relative;
-  flex: 0 0 clamp(268px, 25vw, 340px);
+  display: block;
+  width: 100%;
   overflow: hidden;
   border-radius: 22px;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
+}
+
+/* The active lift moves the scene, not the card — the card's own transform is
+   owned by the pointer tilt and would be clobbered. */
+.rail-track > .tilt-scene:has(.rail-card.is-active) {
+  box-shadow: 0 26px 60px rgb(2 47 64 / 0.3);
+  border-radius: 22px;
 }
 
 .rail-card.is-active {
-  transform: translateY(-4px);
   box-shadow: 0 26px 60px rgb(2 47 64 / 0.3);
 }
 
@@ -620,6 +683,43 @@ body {
 
   .ridge--mid {
     height: 18vh;
+  }
+}
+
+/* ============================================================================
+   CSS 3D tilt
+   ========================================================================= */
+
+.tilt-scene {
+  perspective: 900px;
+  perspective-origin: 50% 50%;
+}
+
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* While the pointer is driving it, drop the easing so the card tracks the
+   cursor exactly; the transition is only there for the spring back to rest. */
+.tilt-card:hover {
+  transition: transform 90ms linear;
+}
+
+/* Children lift off the card face, so they parallax as it turns. */
+.tilt-card [data-depth] {
+  transform: translateZ(var(--depth, 0px));
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card {
+    transform: none !important;
+    transition: none !important;
+  }
+  .tilt-card [data-depth] {
+    transform: none !important;
   }
 }
 
