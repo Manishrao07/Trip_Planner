@@ -67,31 +67,59 @@ export type StreamChunk = {
 };
 
 /**
- * Models newer than about a quarter old are frequently saturated: a plain 503
- * "experiencing high demand" is the single most common way this app fails, and
- * it has nothing to do with the request. So the primary model is tried twice
- * with backoff, then we move down a chain of progressively less fashionable —
- * and therefore less contended — models.
+ * Newer models are frequently saturated: a plain 503 "experiencing high demand"
+ * is the single most common way this app fails, and it has nothing to do with
+ * the request. The chain runs from the configured model down through
+ * progressively less fashionable — and therefore less contended — ones, each
+ * verified to accept this exact request config.
  */
-const FALLBACK_MODELS = ["gemini-3.1-flash-lite", "gemini-3-flash-preview"];
+const FALLBACK_MODELS = [
+  "gemini-3.1-flash-lite",
+  "gemini-3.5-flash-lite",
+  "gemini-3-flash-preview",
+  "gemini-flash-lite-latest",
+];
 
 function modelChain(): string[] {
   const primary = getModelName();
   return [primary, ...FALLBACK_MODELS.filter((m) => m !== primary)];
 }
 
-/** Congestion and transport hiccups are worth another go; a 400 is not. */
-function isTransient(error: unknown): boolean {
-  const text = (error instanceof Error ? error.message : String(error)).toLowerCase();
+function messageOf(error: unknown): string {
+  return (error instanceof Error ? error.message : String(error)).toLowerCase();
+}
+
+/**
+ * The model itself is saturated (503 / UNAVAILABLE / "high demand").
+ *
+ * Retrying the *same* model is close to worthless here — a demand spike lasts
+ * far longer than any backoff worth making a user wait through. The right move
+ * is to switch models immediately.
+ */
+function isOverloaded(error: unknown): boolean {
+  const text = messageOf(error);
   return (
     text.includes("unavailable") ||
     text.includes("high demand") ||
     text.includes("overloaded") ||
+    /"code":\s*(429|503)/.test(text) ||
+    /\b(429|503)\b/.test(text)
+  );
+}
+
+/**
+ * The connection flaked rather than the model refusing. These are genuinely
+ * random, so the same model is worth one more go after a brief pause.
+ */
+function isFlaky(error: unknown): boolean {
+  const text = messageOf(error);
+  return (
     text.includes("terminated") ||
     text.includes("econnreset") ||
+    text.includes("socket hang up") ||
+    text.includes("premature close") ||
     text.includes("fetch failed") ||
-    /"code":\s*(429|500|502|503|504)/.test(text) ||
-    /\b(429|503)\b/.test(text)
+    /"code":\s*(500|502|504)/.test(text)
   );
 }
 
@@ -110,7 +138,7 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
 }
 
 /** Total generation attempts across all models before giving up. */
-const MAX_ATTEMPTS = 4;
+const MAX_ATTEMPTS = 6;
 
 /**
  * Streams raw model text, retrying and falling back on congestion.
@@ -138,7 +166,8 @@ export async function* streamItinerary(
   let dirty = false; // whether the consumer holds text from a failed attempt
 
   for (const model of chain) {
-    // Two goes at each model: congestion is usually momentary.
+    // At most two goes at any one model, and the second only for a flaky
+    // connection — see the catch below.
     for (let perModel = 0; perModel < 2 && attempts < MAX_ATTEMPTS; perModel++) {
       attempts++;
       try {
@@ -172,8 +201,18 @@ export async function* streamItinerary(
         lastError = error;
         if (signal.aborted) throw error;
         dirty = true;
-        if (!isTransient(error)) break; // a real error: move to the next model
-        await sleep(500 * perModel + 400, signal);
+
+        // A saturated model will still be saturated after any backoff short
+        // enough to make someone wait through. Switch immediately instead.
+        if (isOverloaded(error)) break;
+
+        // A dropped connection is random — one more go at the same model.
+        if (isFlaky(error) && perModel === 0) {
+          await sleep(600, signal);
+          continue;
+        }
+
+        break; // anything else: this model won't work, try the next
       }
     }
   }
