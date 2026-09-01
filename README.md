@@ -28,7 +28,7 @@ cp .env.example .env.local
 
 ```
 GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.5-flash   # optional
+GEMINI_MODEL=gemini-3.6-flash   # optional
 ```
 
 Then:
@@ -83,7 +83,7 @@ client never has to trust its own optimistic partial parse.
 | `lib/schema.ts` | The contract. Zod schema, TS types, and the OpenAPI schema sent to Gemini — one source of truth used three ways. |
 | `lib/partial-json.ts` | Tolerant JSON: fence stripping, trailing commas, truncation repair, streaming snapshots. |
 | `lib/normalize.ts` | Salvage layer. Turns a validated blob into renderable state, dropping only what's broken. |
-| `lib/errors.ts` | The error taxonomy — 13 kinds, each with a cause, a consequence, and a recovery path. |
+| `lib/errors.ts` | The error taxonomy — 15 kinds, each with a cause, a consequence, and a recovery path. |
 | `lib/motion.ts` | Scroll-choreography math (`smoothstep`, `segmentInOut`). |
 | `lib/globe.ts` | Globe geometry — lat/lng projection, great-circle arcs, centroids. No Three.js import, so it unit-tests in Node. |
 | `lib/geo/land.json` | 64 KB of pre-decoded Natural Earth coastline (public domain). |
@@ -136,7 +136,7 @@ low temperature, once. The UI says what it's doing while this happens
 ("The model's response was malformed — repairing it…") instead of showing an
 unexplained pause.
 
-**Empty, slow, failed** — 13 error kinds, each mapped to a real HTTP status and a
+**Empty, slow, failed** — 15 error kinds, each mapped to a real HTTP status and a
 specific recovery. The retry button only appears when retrying could actually
 help, so a missing API key never invites you into a loop that can't succeed.
 Timeouts are bounded at both ends (70s server, 90s client).
@@ -173,6 +173,14 @@ for (let i = 0; i <= full.length; i++) {
   assert.doesNotThrow(() => JSON.parse(completed));
 }
 ```
+
+### Measured against the live model
+
+A real run (`gemini-3.6-flash`, "3 days in Kyoto, temples and food, mid budget"):
+30s end to end, first token ~2s, **98 streamed deltas**, 3 days, 15 stops,
+**15/15 geocoded**, zero repairs and zero salvage issues. Spot-checked
+coordinates land on the actual sites (Kiyomizu-dera 34.9949/135.785, Fushimi
+Inari 34.9671/135.7727) and ¥400 is the real admission price.
 
 These tests caught a real bug during development: the scanner marked only
 structural punctuation as safe, never a completed *value*, so terminated strings
@@ -244,9 +252,16 @@ scrubs, it just stops gliding and following the cursor.
   and the app presents them as estimates.
 - **Sessions are `localStorage` only** — per browser, capped at 12, lost when site
   data is cleared. No accounts, no sync.
-- **Thinking is disabled** (`thinkingBudget: 0`) to keep time-to-first-token low.
-  It trades a little planning depth for a stream that actually streams; the
-  system instruction carries the quality. `gemini-2.5-pro` is a one-line change.
+- **Thinking is set to `low`, not off.** Gemini 3.x rejects `thinkingBudget: 0`
+  outright (400); thinking can be shortened but not skipped. This matters more
+  than it sounds: at the default depth the model thinks for ~64s and then
+  returns the entire response in a *single* chunk, which defeats streaming
+  completely and nearly trips the request timeout. `low` gives ~2s to first
+  token and ~100 chunks.
+- **Model ids rot.** Google retires models for *new* API keys while still
+  listing them on the `/models` endpoint — so a stale default fails only for
+  people who signed up recently, and looks fine to everyone else. If you see
+  "That model isn't available", set a current `GEMINI_MODEL`.
 - **`npm audit` reports 2 advisories** in the `postcss` version bundled inside
   Next 15's build tooling. Both are build-time CSS sourcemap issues with no
   runtime exposure; clearing them requires a Next 16 major bump.

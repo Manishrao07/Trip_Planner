@@ -1,4 +1,4 @@
-import { GoogleGenAI, type Schema } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel, type Schema } from "@google/genai";
 import { geminiResponseSchema } from "./schema";
 import { SYSTEM_INSTRUCTION } from "./prompt";
 
@@ -14,7 +14,12 @@ if (typeof window !== "undefined") {
   throw new Error("lib/gemini.ts must never be imported into client code.");
 }
 
-export const DEFAULT_MODEL = "gemini-2.5-flash";
+/**
+ * Kept current deliberately. Google retires models for *new* API keys while
+ * still listing them on /models, so a stale default fails only for people who
+ * signed up recently — the worst kind of bug to inherit.
+ */
+export const DEFAULT_MODEL = "gemini-3.6-flash";
 
 export function getModelName(): string {
   return process.env.GEMINI_MODEL?.trim() || DEFAULT_MODEL;
@@ -37,10 +42,14 @@ const baseConfig = {
   temperature: 0.85,
   topP: 0.95,
   maxOutputTokens: 8192,
-  // 2.5-flash thinks before it speaks by default, which means ~10s of silence
-  // followed by a dump. Disabling it trades a little planning depth for a stream
-  // that actually starts streaming — the system instruction carries the quality.
-  thinkingConfig: { thinkingBudget: 0 },
+  // Gemini 3.x thinks before it speaks, and at the default depth that means
+  // ~64s of silence followed by the entire response in a single chunk — which
+  // defeats streaming entirely and nearly trips the request timeout.
+  //
+  // `thinkingLevel: "low"` takes first-token latency from ~64s to ~2s and turns
+  // one chunk into ~107, so the UI fills in progressively. Note that 3.x rejects
+  // `thinkingBudget: 0` outright (400) — thinking can be shortened, not skipped.
+  thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
 };
 
 export type StreamChunk = {

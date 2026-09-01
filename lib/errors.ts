@@ -9,6 +9,7 @@
 export type ErrorKind =
   | "missing_key"
   | "invalid_key"
+  | "model_unavailable"
   | "rate_limited"
   | "provider_error"
   | "timeout"
@@ -47,6 +48,13 @@ const CATALOG: Record<ErrorKind, Omit<AppError, "kind" | "repairs">> = {
     title: "API key rejected",
     message: "Gemini refused the key this server is using.",
     hint: "Check GEMINI_API_KEY in .env.local — it may be expired, revoked, or missing API access.",
+    retryable: false,
+  },
+  model_unavailable: {
+    title: "That model isn't available",
+    message:
+      "Gemini rejected the configured model — it may have been retired, or never been available to this API key.",
+    hint: "Set GEMINI_MODEL in .env.local to a current model (see the README), then restart the dev server.",
     retryable: false,
   },
   rate_limited: {
@@ -135,6 +143,13 @@ export function classifyThrown(error: unknown): ErrorKind {
   const raw = error instanceof Error ? `${error.name} ${error.message}` : String(error);
   const text = raw.toLowerCase();
 
+  if (
+    text.includes("no longer available") ||
+    text.includes("is not found for api version") ||
+    text.includes("not supported for generatecontent")
+  ) {
+    return "model_unavailable";
+  }
   if (text.includes("api key not valid") || text.includes("api_key_invalid")) return "invalid_key";
   if (text.includes("permission_denied") || text.includes("403")) return "invalid_key";
   if (text.includes("unauthenticated") || text.includes("401")) return "invalid_key";
@@ -165,6 +180,7 @@ export function statusForKind(kind: ErrorKind): number {
   switch (kind) {
     case "missing_key":
     case "invalid_key":
+    case "model_unavailable":
       return 500;
     case "rate_limited":
       return 429;
