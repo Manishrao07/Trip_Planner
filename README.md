@@ -299,8 +299,8 @@ mid-stream and the preview filled a day at a time instead of a stop at a time.
 > explain every file here, because the interview will ask you to extend and debug
 > it live.
 
-Built with heavy AI assistance (Claude), used for scaffolding, the tolerant JSON
-parser and salvage layer, the test suite, and adapting a cinematic-scroll
+Built with heavy use of an AI coding assistant, for scaffolding, the tolerant
+JSON parser and salvage layer, the test suite, and adapting a cinematic-scroll
 reference into the React hero.
 
 Decisions worth being able to defend:
@@ -333,6 +333,6 @@ Roughly **8 hours** — 1 h schema and prompts, 3 h failure handling and its tes
 
 <div align="center">
 
-MIT · Built with [Claude Code](https://claude.com/claude-code)
+MIT
 
 </div>
