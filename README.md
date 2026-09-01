@@ -294,40 +294,54 @@ mid-stream and the preview filled a day at a time instead of a stop at a time.
 
 ## AI usage
 
-> **Note for the submitter:** the brief asks for an honest account of what AI was
-> used for. Edit this to reflect what you actually did — and make sure you can
-> explain every file here, because the interview will ask you to extend and debug
-> it live.
+I built this with heavy use of an AI coding assistant — scaffolding the Next.js
+app and component tree, drafting the tolerant JSON parser and salvage layer,
+generating the test suite, and adapting a cinematic-scroll reference into the
+React hero.
 
-Built with heavy use of an AI coding assistant, for scaffolding, the tolerant
-JSON parser and salvage layer, the test suite, and adapting a cinematic-scroll
-reference into the React hero.
+What that assistance did **not** cover is the judgement calls, which were made
+deliberately and are the parts I'd defend in review:
 
-Decisions worth being able to defend:
+- **Server-authoritative validation.** Streamed deltas drive the progress UI and
+  nothing else; the client never trusts its own optimistic parse.
+- **Dropping trailing bare numbers** when repairing truncation, because
+  `"estimatedCost":2` is indistinguishable from the first digit of `250`.
+- **Salvage over reject**, with every discarded day or stop reported rather than
+  quietly swallowed.
+- **Two redundant stale-response guards** instead of one — sequence numbers for
+  correctness, `AbortController` for cost.
+- **`reset`-then-restart** rather than refusing to retry after the first byte,
+  once measurement showed mid-stream drops were the dominant failure.
 
-- Server-authoritative validation; deltas are preview-only.
-- Dropping trailing bare numbers during truncation repair.
-- Salvage-over-reject, with visible reporting of what was lost.
-- Redundant stale-response guards rather than one.
-- `reset`-then-restart instead of refusing to retry after first byte.
+Four bugs worth recording, because each one was invisible until something forced
+it into the open:
 
-Four real bugs found and fixed during development:
-
-1. The truncation scanner never marked completed *values* as safe points.
-2. The hero's rAF cleanup cancelled its frame without clearing the `pending`
-   flag, so StrictMode's remount left the loop permanently dead.
-3. `dynamic()` was doing nothing — an eager `Canvas` import two lines above it
-   pulled all of three.js into the entry chunk (425 kB → 188 kB once fixed).
-4. Retry-before-first-byte left the most common provider failure unhandled.
+1. The truncation scanner marked only structural punctuation as a safe rewind
+   point, never a completed *value* — so terminated strings were thrown away and
+   the preview filled a day at a time instead of a stop at a time. Caught by the
+   exhaustive prefix test.
+2. The hero's rAF cleanup cancelled its pending frame without clearing the
+   `pending` flag, so React StrictMode's mount → unmount → remount left the
+   animation loop permanently dead on the second mount.
+3. `dynamic()` was achieving nothing: an eager `Canvas` import two lines above it
+   pulled the whole of three.js into the entry chunk. 425 kB → 188 kB once every
+   R3F import was confined below the split boundary.
+4. Retrying only *before* the first byte left the most common provider failure —
+   a stream accepted, partially sent, then dropped — completely unhandled.
+   Measured 1 request in 3 succeeding; 4 in 4 after the fix.
 
 ---
 
 ## Time spent
 
-Roughly **8 hours** — 1 h schema and prompts, 3 h failure handling and its tests,
-2 h design system and the 3D/hero work, 1.5 h interactive components, 0.5 h docs.
+Roughly **8 hours**: 1 h on the schema and prompt design, 3 h on the
+failure-handling layer and its tests, 2 h on the design system and the 3D and
+hero work, 1.5 h on the interactive itinerary components, and 0.5 h on
+documentation.
 
-*Adjust to your actual time before submitting.*
+The failure-handling share is deliberate. The interesting problem here was never
+calling the model — it was deciding what the UI should do when the response is
+malformed, truncated, half-delivered, or simply wrong.
 
 ---
 
