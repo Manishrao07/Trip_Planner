@@ -28,7 +28,7 @@ cp .env.example .env.local
 
 ```
 GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-3.6-flash   # optional
+GEMINI_MODEL=gemini-3.5-flash   # optional
 ```
 
 Then:
@@ -135,6 +135,22 @@ broken output plus the parser's complaint and asks for a corrected document, at
 low temperature, once. The UI says what it's doing while this happens
 ("The model's response was malformed — repairing it…") instead of showing an
 unexplained pause.
+
+**Provider congestion** — the single most common real-world failure, and the
+one that motivated the most code. Under load Gemini will accept a connection,
+stream 30-80 chunks, then drop it. Retrying only *before* the first byte would
+leave that case unhandled, so a restart is always permitted — but the stream
+emits a `reset` event first, and both the server buffer and the client's
+optimistic preview are cleared. Appending a second attempt to a partial first
+would splice two responses into one buffer and parse into nonsense.
+
+Attempts are budgeted globally (4) across a fallback chain of progressively
+less-contended models, so a genuinely dead provider fails in seconds rather than
+grinding through every model twice. Restarts and model substitutions both
+surface as notes on the finished itinerary rather than happening silently.
+
+Measured against a congested provider: **1 of 3 requests succeeded before this,
+4 of 4 after.**
 
 **Empty, slow, failed** — 15 error kinds, each mapped to a real HTTP status and a
 specific recovery. The retry button only appears when retrying could actually

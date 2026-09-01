@@ -24,6 +24,11 @@ export type StreamStage = "generating" | "repairing" | "validating";
 export type ServerEvent =
   | { type: "meta"; model: string; mode: RequestMode }
   | { type: "delta"; text: string }
+  /**
+   * Discard all deltas received so far. The generation attempt died part-way
+   * and a fresh one is starting; appending would splice two partial responses.
+   */
+  | { type: "reset" }
   | { type: "status"; stage: StreamStage }
   | {
       type: "result";

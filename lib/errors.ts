@@ -168,6 +168,18 @@ export function classifyThrown(error: unknown): ErrorKind {
   if (text.includes("fetch failed") || text.includes("econnrefused") || text.includes("enotfound")) {
     return "network";
   }
+  // A stream that dies part-way through. Common when the provider is congested:
+  // the connection is accepted, some tokens arrive, then it is dropped. It
+  // cannot be retried transparently (see streamItinerary), so it has to reach
+  // the user as something they can act on rather than "unknown".
+  if (
+    text.includes("terminated") ||
+    text.includes("econnreset") ||
+    text.includes("socket hang up") ||
+    text.includes("premature close")
+  ) {
+    return "provider_error";
+  }
   if (/50\d/.test(text) || text.includes("internal") || text.includes("unavailable")) {
     return "provider_error";
   }

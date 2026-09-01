@@ -122,13 +122,24 @@ export async function POST(request: NextRequest) {
 
         let raw = "";
         let finishReason: string | undefined;
+        let servedBy: string | undefined;
+
+        let restarts = 0;
 
         for await (const chunk of streamItinerary(modelPrompt, abort.signal)) {
+          if (chunk.reset) {
+            // A previous attempt died mid-stream. Drop what both ends hold.
+            raw = "";
+            restarts++;
+            send({ type: "reset" });
+            continue;
+          }
           if (chunk.text) {
             raw += chunk.text;
             send({ type: "delta", text: chunk.text });
           }
           if (chunk.finishReason) finishReason = chunk.finishReason;
+          servedBy = chunk.model;
         }
 
         // The user navigated away or typed a new prompt — stop doing work.
@@ -167,6 +178,23 @@ export async function POST(request: NextRequest) {
             }),
           });
           return;
+        }
+
+        if (restarts > 0) {
+          outcome.issues.push({
+            path: "$",
+            message: `The connection dropped mid-response ${restarts === 1 ? "once" : `${restarts} times`}; the itinerary was regenerated.`,
+            severity: "repaired",
+          });
+        }
+
+        // Be transparent when congestion pushed us onto a different model.
+        if (servedBy && servedBy !== getModelName()) {
+          outcome.issues.push({
+            path: "$",
+            message: `${getModelName()} was unavailable, so this was planned by ${servedBy}.`,
+            severity: "repaired",
+          });
         }
 
         const truncatedByLimit = finishReason === "MAX_TOKENS";

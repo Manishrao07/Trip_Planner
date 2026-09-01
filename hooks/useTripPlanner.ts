@@ -367,6 +367,12 @@ export function useTripPlanner() {
           case "status":
             commit({ type: "request/stage", stage: event.stage });
             break;
+          case "reset":
+            // The server restarted generation; everything buffered is stale.
+            buffer = "";
+            lastPreviewAt = 0;
+            commit({ type: "request/stage", stage: "generating" });
+            break;
           case "delta":
             buffer += event.text;
             renderPreview(false);
