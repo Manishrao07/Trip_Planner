@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import CinematicHero from "@/components/CinematicHero";
 import Composer from "@/components/Composer";
@@ -23,14 +23,32 @@ export default function Home() {
   const workspaceRef = useRef<HTMLDivElement>(null);
 
   const isLoading = state.status === "loading";
-  /** The cinematic landing only survives while there's genuinely nothing else to show. */
-  const showHero = state.status === "idle" && !state.itinerary;
+
+  /**
+   * The carriage needs the stage to itself for the length of its departure.
+   * Switching screens the instant the request fires would cut the animation
+   * mid-pull-away; the request is already in flight throughout, so this buys
+   * the moment without costing any latency.
+   */
+  const [departed, setDeparted] = useState(false);
+  useEffect(() => {
+    if (!isLoading || state.itinerary) {
+      setDeparted(false);
+      return;
+    }
+    const timer = setTimeout(() => setDeparted(true), 900);
+    return () => clearTimeout(timer);
+  }, [isLoading, state.itinerary]);
+
+  /** The landing holds through the departure, then hands over to the journey. */
+  const showHero =
+    !state.itinerary && (state.status === "idle" || (isLoading && !departed));
   /**
    * The journey takes the full screen only for a first generation. A refinement
    * keeps the itinerary on screen — yanking it away to show a loading animation
    * would lose the user's place in the thing they're editing.
    */
-  const showJourney = isLoading && !state.itinerary;
+  const showJourney = isLoading && !state.itinerary && departed;
 
   // Leaving the hero means leaving a 175vh scroll rig — start the workspace at
   // the top rather than wherever the hero happened to be scrolled to.
@@ -56,7 +74,7 @@ export default function Home() {
           <motion.div
             key="hero"
             exit={{ opacity: 0, filter: "blur(8px)" }}
-            transition={{ duration: 0.35, ease: "easeIn" }}
+            transition={{ duration: 0.28, ease: "easeIn" }}
           >
             <main id="main">
               <CinematicHero

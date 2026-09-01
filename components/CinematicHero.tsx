@@ -1,11 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useRef } from "react";
 
 import { useCinematicScroll } from "@/hooks/useCinematicScroll";
 import Composer from "./Composer";
+import TrainCoach from "./TrainCoach";
 import Globe from "./globe/Globe";
 import { RidgeFar, RidgeMid, RidgeWall } from "./Ridges";
 
@@ -13,6 +15,19 @@ type Props = {
   onSubmit: (prompt: string) => void;
   onCancel: () => void;
   isLoading: boolean;
+};
+
+/**
+ * Where the carriage goes when it departs: up and to the right, shrinking
+ * toward the globe's limb so it reads as joining the orbit rather than simply
+ * sliding off-screen.
+ */
+const DEPARTURE = {
+  x: "48vw",
+  y: "-14vh",
+  scale: 0.22,
+  rotate: -7,
+  opacity: 0,
 };
 
 const TAGS = ["Day-by-day plans", "Reorder anything", "Refine in plain English"];
@@ -27,8 +42,17 @@ const TAGS = ["Day-by-day plans", "Reorder anything", "Refine in plain English"]
 export default function CinematicHero({ onSubmit, onCancel, isLoading }: Props) {
   const rigRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const [departing, setDeparting] = useState(false);
 
   useCinematicScroll(rigRef, stageRef);
+
+  // Fire the request immediately and play the departure over the top of it, so
+  // the animation costs no latency — by the time the carriage has left, the
+  // model has already been working for most of a second.
+  const handleSubmit = (prompt: string) => {
+    setDeparting(true);
+    onSubmit(prompt);
+  };
 
   return (
     <div ref={rigRef} className="stage-rig">
@@ -119,22 +143,46 @@ export default function CinematicHero({ onSubmit, onCancel, isLoading }: Props) 
             transition={{ duration: 0.6, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="mt-9 w-full"
           >
-            {/* The carriage: a gentle sway, and the track running beneath it. */}
+            {/* The carriage. It sways at rest, then pulls away carrying the
+                text the user just wrote. */}
             <motion.div
-              animate={isLoading ? { y: 0 } : { y: [0, -2.5, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              animate={
+                departing
+                  ? DEPARTURE
+                  : { x: 0, y: [0, -2.5, 0], scale: 1, rotate: 0, opacity: 1 }
+              }
+              transition={
+                departing
+                  ? { duration: 0.9, ease: [0.42, 0, 0.7, 0.4] } // slow start, accelerating away
+                  : { duration: 5.5, repeat: Infinity, ease: "easeInOut" }
+              }
             >
-              <Composer onSubmit={onSubmit} onCancel={onCancel} isLoading={isLoading} autoFocus />
+              <Composer
+                onSubmit={handleSubmit}
+                onCancel={onCancel}
+                isLoading={isLoading}
+                autoFocus
+                // Only the field rides in the carriage; the example chips stay
+                // on the platform, below the rail.
+                shell={(field) => (
+                  <>
+                    <TrainCoach departing={departing}>{field}</TrainCoach>
+                    <div
+                      className="rail mt-6"
+                      aria-hidden="true"
+                      // The track quickens the moment a journey begins.
+                      style={
+                        {
+                          "--rail-duration": departing ? "0.28s" : "1.9s",
+                        } as React.CSSProperties
+                      }
+                    >
+                      <div className="rail-sleepers" />
+                    </div>
+                  </>
+                )}
+              />
             </motion.div>
-
-            <div
-              className="rail mt-1"
-              aria-hidden="true"
-              // The track quickens the moment a journey begins.
-              style={{ "--rail-duration": isLoading ? "0.5s" : "1.9s" } as React.CSSProperties}
-            >
-              <div className="rail-sleepers" />
-            </div>
           </motion.div>
 
           <motion.ul
