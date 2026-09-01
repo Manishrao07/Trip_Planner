@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowUp, CornerDownLeft, Square } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 const EXAMPLES = [
   "4 days in Lisbon in October — seafood, viewpoints, and no museums before 11am",
@@ -18,9 +18,15 @@ type Props = {
   onCancel: () => void;
   isLoading: boolean;
   autoFocus?: boolean;
+  /**
+   * Optional chrome wrapped around the input itself — used by the hero to seat
+   * it in a train carriage. It receives only the field, never the example
+   * chips: wrapping those too would put the carriage's wheels below them.
+   */
+  shell?: (field: ReactNode) => ReactNode;
 };
 
-export default function Composer({ onSubmit, onCancel, isLoading, autoFocus }: Props) {
+export default function Composer({ onSubmit, onCancel, isLoading, autoFocus, shell }: Props) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,13 +59,12 @@ export default function Composer({ onSubmit, onCancel, isLoading, autoFocus }: P
     }
   };
 
-  return (
-    <div className="w-full">
-      <div
-        className={`sheen relative overflow-hidden rounded-[var(--radius-xl)] transition-shadow duration-300 ${
-          isLoading ? "shadow-[var(--shadow-float)]" : ""
-        }`}
-      >
+  const field = (
+    <div
+      className={`sheen relative overflow-hidden rounded-[var(--radius-xl)] transition-shadow duration-300 ${
+        isLoading ? "shadow-[var(--shadow-float)]" : ""
+      }`}
+    >
         {/* Progress beam along the top edge while the model works. */}
         {isLoading && <div className="beam absolute inset-x-0 top-0 z-10 h-px" aria-hidden="true" />}
 
@@ -118,9 +123,14 @@ export default function Composer({ onSubmit, onCancel, isLoading, autoFocus }: P
                 />
               </motion.button>
             )}
-          </div>
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full">
+      {shell ? shell(field) : field}
 
       <div className="mt-5">
         <p className="mb-2.5 text-[11px] font-medium uppercase tracking-[0.14em] text-fg-faint">
