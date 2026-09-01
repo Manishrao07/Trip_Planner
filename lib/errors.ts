@@ -41,7 +41,7 @@ const CATALOG: Record<ErrorKind, Omit<AppError, "kind" | "repairs">> = {
   missing_key: {
     title: "No API key configured",
     message: "The server doesn't have a Gemini API key, so it can't reach the model.",
-    hint: "Add GEMINI_API_KEY to .env.local and restart the dev server. See the README.",
+    hint: "Add GEMINI_API_KEY to .env.local and restart the dev server. See .env.example.",
     retryable: false,
   },
   invalid_key: {
@@ -54,7 +54,7 @@ const CATALOG: Record<ErrorKind, Omit<AppError, "kind" | "repairs">> = {
     title: "That model isn't available",
     message:
       "Gemini rejected the configured model — it may have been retired, or never been available to this API key.",
-    hint: "Set GEMINI_MODEL in .env.local to a current model (see the README), then restart the dev server.",
+    hint: "Set GEMINI_MODEL in .env.local to a current model (see .env.example), then restart the dev server.",
     retryable: false,
   },
   rate_limited: {
