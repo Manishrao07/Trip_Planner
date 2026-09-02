@@ -4,7 +4,8 @@ An AI trip planner. You describe a trip in a sentence, it comes back with a day-
 
 It's not a chatbot. The model returns structured JSON and the app renders it as real components (day cards, stop cards, a map), not a wall of text.
 
-Live: https://trip-planner-orcin-omega.vercel.app
+‼️Live: https://trip-planner-orcin-omega.vercel.app
+‼️Video(demo) :https://youtu.be/Ij_O5gQQpMY
 
 ## Setup
 
